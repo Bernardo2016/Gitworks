@@ -1,0 +1,5 @@
+Crea un workflow que permita validar el código de Python de un cálculo de tarifa de un estacionamiento. 
+
+Después, cambia el archivo para el registro de entrega de un libro en una biblioteca. 
+
+Todo debe ser realizado desde GitHub con Projects, Actions y el repo. 
