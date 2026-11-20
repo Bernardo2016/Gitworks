@@ -1,79 +1,54 @@
 # Autor: Bernardo Velasco Ortega
 # Matrícula: AL07127004
-# Descripción: Cálculo de tarifa de estacionamiento por tiempo transcurrido
+# Descripción: Cálculo y registro de entrega/devolución de un libro en biblioteca
 
-import math
+from datetime import datetime
 
-def calcular_tarifa(minutos_totales: int, boleto_perdido: bool = False) -> float:
+
+def registrar_entrega(titulo: str, usuario: str, fecha_limite_str: str, fecha_entrega_str: str, multa_por_dia: float = 15.0) -> dict:
     """
-    Calcula el costo total de estacionamiento en MXN bajo las siguientes reglas:
-    - Boleto perdido: tarifa fija de $250.00 MXN.
-    - Tolerancia: primeros 15 minutos gratis.
-    - Primera hora (16 a 60 min): $30.00 MXN.
-    - Hora adicional o fracción (después de la 1ra hora): $20.00 MXN por hora.
-    - Tarifa máxima por día (24 horas): $220.00 MXN.
+    Calcula los días de retraso y la multa correspondiente al devolver un libro.
+    Formato de fechas esperado: 'YYYY-MM-DD'
     """
-    if boleto_perdido:
-        return 250.00
+    fecha_limite = datetime.strptime(fecha_limite_str, "%Y-%m-%d").date()
+    fecha_entrega = datetime.strptime(fecha_entrega_str, "%Y-%m-%d").date()
 
-    if minutos_totales < 0:
-        raise ValueError("El tiempo transcurrido no puede ser negativo.")
+    diferencia_dias = (fecha_entrega - fecha_limite).days
+    dias_retraso = max(0, diferencia_dias)
+    multa_total = dias_retraso * multa_por_dia
+    estado = "Entrega a tiempo" if dias_retraso == 0 else f"Entrega con retraso ({dias_retraso} día(s))"
 
-    # Tolerancia de 15 minutos
-    if minutos_totales <= 15:
-        return 0.00
-
-    tarifa_primera_hora = 30.00
-    tarifa_hora_adicional = 20.00
-    tarifa_maxima_diaria = 220.00
-
-    # Cálculo por días completos + horas restantes
-    minutos_por_dia = 24 * 60
-    dias_completos = minutos_totales // minutos_por_dia
-    minutos_restantes = minutos_totales % minutos_por_dia
-
-    costo_restante = 0.00
-    if minutos_restantes > 0:
-        if minutos_restantes <= 60:
-            costo_restante = tarifa_primera_hora
-        else:
-            horas_adicionales = math.ceil((minutos_restantes - 60) / 60)
-            costo_restante = tarifa_primera_hora + (horas_adicionales * tarifa_hora_adicional)
-        
-        # Aplicar tope diario si el fracción del día supera el máximo
-        costo_restante = min(costo_restante, tarifa_maxima_diaria)
-
-    total = (dias_completos * tarifa_maxima_diaria) + costo_restante
-    return total
+    return {
+        "titulo": titulo,
+        "usuario": usuario,
+        "fecha_limite": fecha_limite,
+        "fecha_entrega": fecha_entrega,
+        "dias_retraso": dias_retraso,
+        "multa_total": multa_total,
+        "estado": estado
+    }
 
 
 def main():
-    print("=== SISTEMA DE COBRO DE ESTACIONAMIENTO ===")
+    print("=== REGISTRO DE ENTREGA DE LIBRO ===")
     try:
-        perdido_input = input("¿El usuario perdió su boleto? (s/n): ").strip().lower()
-        boleto_perdido = perdido_input == "s"
+        titulo = input("Título del libro: ").strip()
+        usuario = input("Nombre del usuario o matrícula: ").strip()
+        fecha_limite = input("Fecha límite de entrega (AAAA-MM-DD): ").strip()
+        fecha_entrega = input("Fecha real de entrega (AAAA-MM-DD): ").strip()
 
-        if boleto_perdido:
-            total = calcular_tarifa(0, boleto_perdido=True)
-            print(f"\nConcepto: Boleto perdido")
-            print(f"Total a pagar: ${total:,.2f} MXN")
-            return
+        registro = registrar_entrega(titulo, usuario, fecha_limite, fecha_entrega)
 
-        horas = int(input("Ingresa las horas completas de estancia: "))
-        minutos = int(input("Ingresa los minutos adicionales (0-59): "))
-
-        if horas < 0 or not (0 <= minutos <= 59):
-            print("Error: Verifica que las horas sean >= 0 y los minutos estén entre 0 y 59.")
-            return
-
-        minutos_totales = (horas * 60) + minutos
-        total = calcular_tarifa(minutos_totales)
-
-        print(f"\nTiempo total: {horas}h {minutos}m ({minutos_totales} min)")
-        print(f"Total a pagar: ${total:,.2f} MXN")
+        print("\n--- COMPROBANTE DE DEVOLUCIÓN ---")
+        print(f"Libro:          {registro['titulo']}")
+        print(f"Usuario:        {registro['usuario']}")
+        print(f"Fecha límite:   {registro['fecha_limite']}")
+        print(f"Fecha entrega:  {registro['fecha_entrega']}")
+        print(f"Estado:         {registro['estado']}")
+        print(f"Multa a pagar:  ${registro['multa_total']:,.2f} MXN")
 
     except ValueError:
-        print("Error: Por favor ingresa únicamente valores numéricos enteros.")
+        print("Error: Verifica que las fechas tengan el formato correcto (AAAA-MM-DD).")
 
 
 if __name__ == "__main__":
