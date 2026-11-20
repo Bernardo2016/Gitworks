@@ -2,6 +2,7 @@
 # Matrícula: AL07127004
 # Descripción: Cálculo y registro de entrega/devolución de un libro en biblioteca
 
+import sys
 from datetime import datetime
 
 
@@ -31,24 +32,22 @@ def registrar_entrega(titulo: str, usuario: str, fecha_limite_str: str, fecha_en
 
 def main():
     print("=== REGISTRO DE ENTREGA DE LIBRO ===")
-    try:
-        titulo = input("Título del libro: ").strip()
-        usuario = input("Nombre del usuario o matrícula: ").strip()
-        fecha_limite = input("Fecha límite de entrega (AAAA-MM-DD): ").strip()
-        fecha_entrega = input("Fecha real de entrega (AAAA-MM-DD): ").strip()
 
-        registro = registrar_entrega(titulo, usuario, fecha_limite, fecha_entrega)
+    # Si se pasan argumentos por consola se usan; si no (como en GitHub Actions), usa datos de prueba
+    titulo = sys.argv[1] if len(sys.argv) > 1 else "Clean Code"
+    usuario = sys.argv[2] if len(sys.argv) > 2 else "Bernardo Velasco (AL07127004)"
+    fecha_limite = sys.argv[3] if len(sys.argv) > 3 else "2026-11-15"
+    fecha_entrega = sys.argv[4] if len(sys.argv) > 4 else "2026-11-20"
 
-        print("\n--- COMPROBANTE DE DEVOLUCIÓN ---")
-        print(f"Libro:          {registro['titulo']}")
-        print(f"Usuario:        {registro['usuario']}")
-        print(f"Fecha límite:   {registro['fecha_limite']}")
-        print(f"Fecha entrega:  {registro['fecha_entrega']}")
-        print(f"Estado:         {registro['estado']}")
-        print(f"Multa a pagar:  ${registro['multa_total']:,.2f} MXN")
+    registro = registrar_entrega(titulo, usuario, fecha_limite, fecha_entrega)
 
-    except ValueError:
-        print("Error: Verifica que las fechas tengan el formato correcto (AAAA-MM-DD).")
+    print("\n--- COMPROBANTE DE DEVOLUCIÓN ---")
+    print(f"Libro:          {registro['titulo']}")
+    print(f"Usuario:        {registro['usuario']}")
+    print(f"Fecha límite:   {registro['fecha_limite']}")
+    print(f"Fecha entrega:  {registro['fecha_entrega']}")
+    print(f"Estado:         {registro['estado']}")
+    print(f"Multa a pagar:  ${registro['multa_total']:,.2f} MXN")
 
 
 if __name__ == "__main__":
